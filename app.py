@@ -1,75 +1,39 @@
-# =================================================================
-# PROYECTO: Configurador de Posters MKFlyer
-# ESTUDIANTE: Angie Katherine Barrera Becerra
-# DESCRIPCIÓN: Programa interactivo que utiliza estructuras de 
-# entrada, proceso y salida para la gestión de catálogo.
-# =================================================================
-
 import streamlit as st
+from PIL import Image, ImageOps
 
-# 1. ENTRADA DE DATOS (Input)
-# Aquí cumplimos con el requerimiento de capturar información del usuario.
-st.title("🎨 MKFlyer: Sistema de Gestión de Diseño")
-st.markdown("---")
+# 1. ENTRADA
+st.title("🎨 MKFlyer: Configurador Visual")
 
-st.sidebar.header("Configuración del Diseño")
-# Entrada de texto
-nombre_diseno = st.sidebar.text_input("Nombre del Póster:", "Poster_Enero_01")
+st.sidebar.header("Configuración")
+archivo_subido = st.sidebar.file_opener = st.file_uploader("Sube tu póster (JPG/PNG)", type=["jpg", "png", "jpeg"])
+color_nombre = st.sidebar.selectbox("Color del marco:", ["Negro", "Blanco", "Rojo", "Azul", "Madera"])
+grosor = st.sidebar.slider("Grosor del marco:", 10, 100, 30)
 
-# Entrada de selección (Categorías)
-tipo_marco = st.sidebar.selectbox(
-    "Seleccione el acabado del marco:",
-    ["Madera Roble", "Negro Industrial", "Blanco Galería", "Rojo Pasión"]
-)
+# 2. PROCESO
+# Mapeo de colores a valores RGB
+colores_rgb = {
+    "Negro": (10, 10, 10),
+    "Blanco": (250, 250, 250),
+    "Rojo": (200, 0, 0),
+    "Azul": (0, 0, 150),
+    "Madera": (139, 69, 19)
+}
 
-# Entrada numérica (Grosor)
-grosor = st.sidebar.slider("Grosor del marco (mm):", 5, 50, 20)
-
-
-# 2. PROCESAMIENTO DE LA INFORMACIÓN (Process)
-# Aquí aplicamos la lógica para transformar las entradas en datos técnicos.
-def calcular_especificaciones(acabado, ancho_mm):
-    # Diccionario para asignar códigos de color (Buena práctica de codificación)
-    colores = {
-        "Madera Roble": "#8B4513",
-        "Negro Industrial": "#000000",
-        "Blanco Galería": "#FFFFFF",
-        "Rojo Pasión": "#FF0000"
-    }
+if archivo_subido is not None:
+    # Abrir la imagen
+    imagen = Image.open(archivo_subido)
     
-    hex_color = colores.get(acabado, "#808080")
+    # Aplicar el marco (Proceso técnico)
+    # Expand agrega un borde a la imagen original
+    imagen_con_marco = ImageOps.expand(imagen, border=grosor, fill=colores_rgb[color_nombre])
     
-    # Un cálculo simple para demostrar procesamiento
-    area_borde_estimada = ancho_mm * 4 # Simulación lógica
+    # 3. SALIDA
+    st.subheader("Previsualización MKFlyer")
+    st.image(imagen_con_marco, caption=f"Póster con marco {color_nombre}", use_column_width=True)
     
-    return hex_color, area_borde_estimada
+    # Botón para descargar el resultado
+    st.success("¡Marco aplicado con éxito!")
+else:
+    st.warning("Por favor, sube una imagen en el menú de la izquierda para empezar.")
 
-# Ejecutamos la función de proceso
-codigo_hex, area = calcular_especificaciones(tipo_marco, grosor)
-
-
-# 3. SALIDA DE RESULTADOS (Output)
-# Aquí mostramos la información procesada de manera limpia y ordenada.
-st.subheader("📋 Resumen de la Propuesta de Diseño")
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.metric("Diseño", nombre_diseno)
-
-with col2:
-    st.metric("Color HEX", codigo_hex)
-
-with col3:
-    st.metric("Grosor", f"{grosor} mm")
-
-# Espacio visual para mostrar el "resultado"
-st.info(f"El sistema ha procesado el diseño '{nombre_diseno}' con un acabado {tipo_marco}.")
-
-# Botón de acción final
-if st.button("Finalizar y Guardar"):
-    st.balloons()
-    st.success(f"Configuración guardada. El borde de {grosor}mm ha sido aplicado correctamente.")
-
-# Pie de página (Requerimiento de identificación)
-st.caption("Actividad: Primer Programa Python | Angie Barrera")
+st.caption("Desarrollado por Angie Barrera | MKFlyer Live Preview")
